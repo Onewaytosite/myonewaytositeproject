@@ -2,7 +2,7 @@ import React from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { PAGES, pagesConfig } from './pages.config' // Import PAGES มาโดยตรง
+import { PAGES, pagesConfig } from './pages.config'
 import { Route, Routes, Navigate } from 'react-router-dom'; 
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -11,12 +11,13 @@ import { Loader2 } from "lucide-react";
 
 const { Layout } = pagesConfig || {};
 
+// ส่วนหุ้มหน้าจอเพื่อให้แสดงเมนูบาร์
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated } = useAuth() || {};
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth() || {};
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -36,17 +37,11 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      {/* หน้าหลัก */}
-      <Route path="/" element={
+      {/* หน้าแรก: รองรับทั้ง / และ /Home */}
+      <Route path="/" element={<Navigate to="/Home" replace />} />
+      <Route path="/Home" element={
         <LayoutWrapper currentPageName="Home">
           <PAGES.Home />
-        </LayoutWrapper>
-      } />
-
-      {/* หน้าโปรไฟล์ */}
-      <Route path="/Profile" element={
-        <LayoutWrapper currentPageName="Profile">
-          <PAGES.Profile />
         </LayoutWrapper>
       } />
 
@@ -57,10 +52,10 @@ const AuthenticatedApp = () => {
         </LayoutWrapper>
       } />
 
-      {/* หน้าแก้ไขพืช */}
-      <Route path="/EditPlant/:id" element={
-        <LayoutWrapper currentPageName="EditPlant">
-          <PAGES.EditPlant />
+      {/* หน้าโปรไฟล์ */}
+      <Route path="/Profile" element={
+        <LayoutWrapper currentPageName="Profile">
+          <PAGES.Profile />
         </LayoutWrapper>
       } />
 
@@ -71,8 +66,15 @@ const AuthenticatedApp = () => {
         </LayoutWrapper>
       } />
 
-      {/* จัดการ Path ที่ไม่รู้จัก */}
-      <Route path="*" element={<PageNotFound />} />
+      {/* หน้าแก้ไขพืช */}
+      <Route path="/EditPlant/:id" element={
+        <LayoutWrapper currentPageName="EditPlant">
+          <PAGES.EditPlant />
+        </LayoutWrapper>
+      } />
+
+      {/* ถ้าหาไม่เจอ ให้เด้งกลับหน้า Home */}
+      <Route path="*" element={<Navigate to="/Home" replace />} />
     </Routes>
   );
 };
@@ -86,4 +88,4 @@ export default function App() {
       </QueryClientProvider>
     </AuthProvider>
   );
-}เ
+}
