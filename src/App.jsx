@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // ห้ามลืมบรรทัดนี้!
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -7,6 +7,7 @@ import { Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { Loader2 } from "lucide-react";
 
 const { Pages = {}, Layout, mainPage } = pagesConfig || {};
 
@@ -15,56 +16,38 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const authContext = useAuth();
-  const { isLoadingAuth = false, isLoadingPublicSettings = false, authError = null, navigateToLogin = () => {} } = authContext || {};
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth() || {};
 
   if (isLoadingPublicSettings || isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-emerald-600" /></div>;
   }
 
   if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      setTimeout(() => navigateToLogin(), 0);
+    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
+    if (authError.type === 'auth_required') {
+      setTimeout(() => navigateToLogin?.(), 0);
       return null;
     }
   }
 
-  const pageEntries = (Pages && typeof Pages === 'object') ? Object.entries(Pages) : [];
-
   return (
     <Routes>
       <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPage || "home"}>
-          {mainPage && Pages[mainPage] ? React.createElement(Pages[mainPage]) : <div>หน้าหลัก</div>}
+        <LayoutWrapper currentPageName={mainPage || "Home"}>
+          {mainPage && Pages[mainPage] ? React.createElement(Pages[mainPage]) : <div>กำลังโหลด...</div>}
         </LayoutWrapper>
       } />
-      
-      {pageEntries.map(([path, PageComponent]) => {
-        if (!PageComponent) return null;
-        return (
-          <Route
-            key={path}
-            path={path.replace(/^\//, '')} 
-            element={
-              <LayoutWrapper currentPageName={path}>
-                <PageComponent />
-              </LayoutWrapper>
-            }
-          />
-        );
-      })}
+      {Object.entries(Pages).map(([path, PageComponent]) => (
+        <Route key={path} path={path.replace(/^\//, '')} element={
+          <LayoutWrapper currentPageName={path}><PageComponent /></LayoutWrapper>
+        } />
+      ))}
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
@@ -72,7 +55,5 @@ function App() {
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
-  )
+  );
 }
-
-export default App  
