@@ -7,7 +7,6 @@ import SearchFilter from "@/components/plants/SearchFilter";
 import ProfileSetupForm from "@/components/profile/ProfileSetupForm";
 
 export default function Home() {
-  const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
@@ -21,12 +20,11 @@ export default function Home() {
         setIsAuthenticated(authenticated);
         if (authenticated) {
           const userData = await base44.auth.me();
-          setUser(userData);
           if (!userData?.id_card_number || !userData?.position) {
             setNeedsSetup(true);
           }
         }
-      } catch (error) {
+      } catch (e) {
         setIsAuthenticated(false);
       }
       setCheckingAuth(false);
@@ -39,20 +37,17 @@ export default function Home() {
     queryFn: () => base44.entities.Plant.list('-created_date'),
   });
 
-  // แก้จุดตาย: บังคับให้เป็น Array เสมอก่อน filter
   const plants = Array.isArray(rawPlants) ? rawPlants : [];
 
   const filteredPlants = plants.filter(plant => {
     if (!plant) return false;
     const nameMatch = (plant.common_name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const sciMatch = (plant.scientific_name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-    const matchesSearch = nameMatch || sciMatch;
     const matchesDept = selectedDepartment === 'all' || plant.department === selectedDepartment;
-    return matchesSearch && matchesDept;
+    return (nameMatch || sciMatch) && matchesDept;
   });
 
   if (checkingAuth) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-emerald-600" /></div>;
-
   if (needsSetup && isAuthenticated) return <ProfileSetupForm onComplete={() => setNeedsSetup(false)} />;
 
   return (
@@ -62,7 +57,6 @@ export default function Home() {
         <h1 className="text-2xl font-bold">ฐานข้อมูลพันธุ์พืช</h1>
         <p className="text-emerald-100">วิทยาลัยเทคนิคสระแก้ว</p>
       </div>
-
       <div className="p-4">
         <div className="mb-4 flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm">
           <Leaf className="h-10 w-10 text-emerald-600 bg-emerald-100 p-2 rounded-xl" />
@@ -71,14 +65,7 @@ export default function Home() {
             <p className="text-sm text-gray-500">พืชทั้งหมด</p>
           </div>
         </div>
-
-        <SearchFilter 
-          searchTerm={searchTerm} 
-          setSearchTerm={setSearchTerm} 
-          selectedDepartment={selectedDepartment} 
-          setSelectedDepartment={setSelectedDepartment} 
-        />
-
+        <SearchFilter searchTerm={searchTerm} setSearchTerm={setSearchTerm} selectedDepartment={selectedDepartment} setSelectedDepartment={setSelectedDepartment} />
         {isLoading ? (
           <div className="py-10 text-center"><Loader2 className="mx-auto animate-spin text-emerald-600" /></div>
         ) : (
