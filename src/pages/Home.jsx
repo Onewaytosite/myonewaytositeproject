@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -26,7 +25,8 @@ export default function Home() {
             setNeedsSetup(true);
           }
         }
-      } catch (e) {
+      } catch {
+        // แก้ไข: ลบ (e) ออกเพื่อเคลียร์ Error 'e' is defined but never used
         setIsAuthenticated(false);
       }
       setCheckingAuth(false);
