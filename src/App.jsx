@@ -1,7 +1,7 @@
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-// import NavigationTracker from '@/lib/NavigationTracker' // 1. ปิดการ Import ไว้ก่อน
 import { pagesConfig } from './pages.config'
 import { Route, Routes } from 'react-router-dom'; 
 import PageNotFound from './lib/PageNotFound';
@@ -16,7 +16,6 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 
 const AuthenticatedApp = () => {
   const authContext = useAuth();
-  // ป้องกันกรณี useAuth() คืนค่า undefined
   const { isLoadingAuth = false, isLoadingPublicSettings = false, authError = null, navigateToLogin = () => {} } = authContext || {};
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -36,7 +35,6 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // เตรียมรายการ Pages ให้ชัวร์ว่าเป็น Array ก่อน map
   const pageEntries = (Pages && typeof Pages === 'object') ? Object.entries(Pages) : [];
 
   return (
@@ -70,9 +68,6 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        {/* 2. ปิด NavigationTracker ไว้ตรงนี้ด้วย เพื่อเช็กว่า b.filter จะหายไหม */}
-        {/* <NavigationTracker /> */}
-        
         <AuthenticatedApp />
         <Toaster />
       </QueryClientProvider>
@@ -80,4 +75,4 @@ function App() {
   )
 }
 
-export default App
+export default App  
