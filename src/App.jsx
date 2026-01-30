@@ -36,12 +36,19 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      {/* บังคับให้หน้าแรกสุดไปที่ /Home */}
       <Route path="/" element={<Navigate to="/Home" replace />} />
+      
+      {/* กำหนด Path ให้ตรงกับที่ปุ่มเมนูเรียก */}
       <Route path="/Home" element={<LayoutWrapper currentPageName="Home"><PAGES.Home /></LayoutWrapper>} />
       <Route path="/AddPlant" element={<LayoutWrapper currentPageName="AddPlant"><PAGES.AddPlant /></LayoutWrapper>} />
       <Route path="/Profile" element={<LayoutWrapper currentPageName="Profile"><PAGES.Profile /></LayoutWrapper>} />
+      
+      {/* หน้าอื่นๆ */}
       <Route path="/PlantDetail/:id" element={<LayoutWrapper currentPageName="PlantDetail"><PAGES.PlantDetail /></LayoutWrapper>} />
       <Route path="/EditPlant/:id" element={<LayoutWrapper currentPageName="EditPlant"><PAGES.EditPlant /></LayoutWrapper>} />
+      
+      {/* ถ้าหาไม่เจอจริงๆ ให้กลับไป Home (ป้องกันหน้าขาว 404) */}
       <Route path="*" element={<Navigate to="/Home" replace />} />
     </Routes>
   );
