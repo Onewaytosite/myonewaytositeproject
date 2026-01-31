@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, LogOut, User as UserIcon, IdCard, Phone, GraduationCap, BookOpen } from "lucide-react";
-import { createPageUrl } from "@/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, User, IdCard, GraduationCap, Mail, LogOut } from "lucide-react";
 import ProfileSetupForm from "@/components/profile/ProfileSetupForm";
 
 export default function Profile() {
@@ -11,118 +11,105 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
 
-  useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
+  const fetchProfile = async () => {
     try {
-      const authenticated = await base44.auth.isAuthenticated();
-      if (!authenticated) {
-        base44.auth.redirectToLogin(createPageUrl("Profile"));
-        return;
-      }
-      const userData = await base44.auth.me();
-      setUser(userData);
-      if (!userData.id_card_number || !userData.position) {
+      setLoading(true);
+      const profile = await base44.auth.me();
+      if (!profile.id_card_number || !profile.position) {
         setNeedsSetup(true);
+      } else {
+        setUser(profile);
+        setNeedsSetup(false);
       }
-    } catch (error) {
-      base44.auth.redirectToLogin(createPageUrl("Profile"));
+    } catch (err) {
+      console.error("Failed to fetch profile:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const handleLogout = () => {
-    base44.auth.logout(createPageUrl("Home"));
-  };
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
       </div>
     );
   }
 
   if (needsSetup) {
     return (
-      <div className="min-h-screen p-4 flex items-center justify-center">
-        <ProfileSetupForm onComplete={() => {
-          setNeedsSetup(false);
-          loadUser();
-        }} />
+      <div className="container mx-auto py-10 px-4">
+        <ProfileSetupForm onComplete={fetchProfile} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-green-700 text-white pt-11 pb-6 px-4">
-        <div className="text-center">
-          <div className="w-20 h-20 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
-            <UserIcon className="w-10 h-10" />
+    <div className="container mx-auto py-10 px-4 max-w-2xl">
+      <Card className="border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
+        <div className="h-32 bg-gradient-to-r from-indigo-600 to-violet-600" />
+        <CardContent className="relative pt-0 pb-10">
+          <div className="flex flex-col items-center -mt-16 mb-6">
+            <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
+              <AvatarImage src={user?.avatar_url} />
+              <AvatarFallback className="bg-indigo-100 text-indigo-600">
+                <User size={48} />
+              </AvatarFallback>
+            </Avatar>
+            <h2 className="mt-4 text-2xl font-bold text-slate-800">{user?.full_name || 'ไม่ระบุชื่อ'}</h2>
+            <Badge variant="secondary" className="mt-2 bg-indigo-100 text-indigo-700 border-0 px-4 py-1">
+              {user?.position === 'student' ? 'นักศึกษา' : 'อาจารย์ / บุคลากร'}
+            </Badge>
           </div>
-          <h1 className="text-2xl font-bold">{user?.full_name}</h1>
-          <p className="text-emerald-100 text-sm mt-1">{user?.email}</p>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-4 -mt-4">
-        <Card className="rounded-2xl shadow-lg border-0 mb-4">
-          <CardHeader className="border-b pb-3">
-            <CardTitle className="text-lg">ข้อมูลส่วนตัว</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <IdCard className="w-5 h-5 text-emerald-600" />
+          <div className="grid gap-4 mt-8">
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <IdCard className="text-indigo-600 w-5 h-5" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">เลขบัตรประชาชน</p>
-                <p className="font-medium text-gray-900">{user?.id_card_number}</p>
+              <div className="flex-1">
+                <p className="text-xs text-slate-500 font-medium">เลขบัตรประชาชน</p>
+                <p className="text-slate-700 font-semibold">{user?.id_card_number || '-'}</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Phone className="w-5 h-5 text-blue-600" />
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <GraduationCap className="text-indigo-600 w-5 h-5" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">รหัสนักศึกษา/อาจารย์ หรือเบอร์โทร</p>
-                <p className="font-medium text-gray-900">{user?.student_teacher_id}</p>
+              <div className="flex-1">
+                <p className="text-xs text-slate-500 font-medium">รหัสประจำตัว / เบอร์โทร</p>
+                <p className="text-slate-700 font-semibold">{user?.student_teacher_id || '-'}</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                {user?.position === 'student' ? (
-                  <GraduationCap className="w-5 h-5 text-purple-600" />
-                ) : (
-                  <BookOpen className="w-5 h-5 text-purple-600" />
-                )}
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <Mail className="text-indigo-600 w-5 h-5" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">ตำแหน่ง</p>
-                <p className="font-medium text-gray-900">
-                  {user?.position === 'student' ? 'นักศึกษา' : 'อาจารย์'}
-                </p>
+              <div className="flex-1">
+                <p className="text-xs text-slate-500 font-medium">อีเมล</p>
+                <p className="text-slate-700 font-semibold">{user?.email || '-'}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          className="w-full h-12 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-        >
-          <LogOut className="w-5 h-5 mr-2" />
-          ออกจากระบบ
-        </Button>
-      </div>
+          <button 
+            onClick={() => {
+              localStorage.removeItem('token');
+              window.location.href = '/login';
+            }}
+            className="w-full mt-8 flex items-center justify-center gap-2 text-red-500 font-bold py-3 hover:bg-red-50 rounded-2xl transition-colors"
+          >
+            <LogOut size={20} />
+            ออกจากระบบ
+          </button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

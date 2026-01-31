@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
-import { Loader2, GraduationCap, BookOpen, Leaf } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, Save } from "lucide-react";
 
 export default function ProfileSetupForm({ onComplete }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    full_name: '',
     id_card_number: '',
     student_teacher_id: '',
     position: ''
@@ -18,129 +18,84 @@ export default function ProfileSetupForm({ onComplete }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (formData.id_card_number.length !== 13) {
-      toast.error("กรุณากรอกเลขบัตรประชาชน 13 หลัก");
-      return;
-    }
-    
-    if (!formData.student_teacher_id) {
-      toast.error("กรุณากรอกรหัสนักศึกษา/อาจารย์ หรือเบอร์โทร");
-      return;
-    }
-    
-    if (!formData.position) {
-      toast.error("กรุณาเลือกตำแหน่ง");
-      return;
-    }
-
-    setLoading(true);
     try {
-      await base44.auth.updateMe(formData);
-      toast.success("บันทึกข้อมูลสำเร็จ");
-      onComplete?.();
+      setLoading(true);
+      await base44.auth.update(formData); 
+      if (onComplete) await onComplete();
     } catch (error) {
-      toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่");
+      console.error("Update failed:", error);
+      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto border-0 shadow-xl rounded-3xl overflow-hidden">
-      <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 text-white">
-        <div className="flex items-center justify-center mb-4">
-          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-            <Leaf className="w-8 h-8" />
-          </div>
-        </div>
-        <CardTitle className="text-2xl text-center">ลงทะเบียนสมาชิก</CardTitle>
-        <CardDescription className="text-emerald-100 text-center mt-2">
-          วิทยาลัยเทคนิคสระแก้ว - ฐานข้อมูลพันธุ์พืช
-        </CardDescription>
-      </div>
-      <CardContent className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
+    <Card className="max-w-md mx-auto border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
+      <CardHeader className="bg-indigo-600 text-white p-8">
+        <CardTitle className="text-2xl font-bold text-center">ตั้งค่าโปรไฟล์</CardTitle>
+        <p className="text-indigo-100 text-center text-sm mt-2">กรุณากรอกข้อมูลเพื่อเริ่มต้นใช้งาน</p>
+      </CardHeader>
+      
+      <CardContent className="p-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="id_card" className="text-gray-700 font-medium">
-              เลขบัตรประชาชน <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="id_card"
-              placeholder="กรอกเลขบัตรประชาชน 13 หลัก"
-              value={formData.id_card_number}
-              onChange={(e) => setFormData({...formData, id_card_number: e.target.value.replace(/\D/g, '').slice(0, 13)})}
-              className="h-12 rounded-xl"
-              maxLength={13}
+            <Label htmlFor="full_name">ชื่อ-นามสกุล</Label>
+            <Input 
+              id="full_name"
+              placeholder="นายใจดี มีสุข"
+              required
+              value={formData.full_name}
+              onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+              className="rounded-xl border-slate-200"
             />
-            <p className="text-xs text-gray-500">{formData.id_card_number.length}/13 หลัก</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="student_id" className="text-gray-700 font-medium">
-              รหัสนักศึกษา/อาจารย์ หรือเบอร์โทร <span className="text-red-500">*</span>
-            </Label>
-            <Input
+            <Label htmlFor="position">สถานะ</Label>
+            <Select onValueChange={(val) => setFormData({...formData, position: val})}>
+              <SelectTrigger className="rounded-xl border-slate-200">
+                <SelectValue placeholder="เลือกสถานะ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">นักศึกษา</SelectItem>
+                <SelectItem value="teacher">อาจารย์ / บุคลากร</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="id_card_number">เลขบัตรประชาชน (13 หลัก)</Label>
+            <Input 
+              id="id_card_number"
+              maxLength={13}
+              placeholder="110xxxxxxxxxx"
+              required
+              value={formData.id_card_number}
+              onChange={(e) => setFormData({...formData, id_card_number: e.target.value})}
+              className="rounded-xl border-slate-200"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="student_id">รหัสประจำตัว / เบอร์โทรศัพท์</Label>
+            <Input 
               id="student_id"
-              placeholder="กรอกรหัสหรือเบอร์โทรศัพท์"
+              placeholder="รหัสนักศึกษา หรือ เบอร์โทร"
+              required
               value={formData.student_teacher_id}
               onChange={(e) => setFormData({...formData, student_teacher_id: e.target.value})}
-              className="h-12 rounded-xl"
+              className="rounded-xl border-slate-200"
             />
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-gray-700 font-medium">
-              ตำแหน่ง <span className="text-red-500">*</span>
-            </Label>
-            <RadioGroup
-              value={formData.position}
-              onValueChange={(value) => setFormData({...formData, position: value})}
-              className="grid grid-cols-2 gap-4"
-            >
-              <label
-                htmlFor="student"
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.position === 'student'
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-emerald-200'
-                }`}
-              >
-                <RadioGroupItem value="student" id="student" className="sr-only" />
-                <GraduationCap className={`w-6 h-6 ${formData.position === 'student' ? 'text-emerald-600' : 'text-gray-400'}`} />
-                <span className={formData.position === 'student' ? 'text-emerald-700 font-medium' : 'text-gray-600'}>
-                  นักศึกษา
-                </span>
-              </label>
-              <label
-                htmlFor="teacher"
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.position === 'teacher'
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-emerald-200'
-                }`}
-              >
-                <RadioGroupItem value="teacher" id="teacher" className="sr-only" />
-                <BookOpen className={`w-6 h-6 ${formData.position === 'teacher' ? 'text-emerald-600' : 'text-gray-400'}`} />
-                <span className={formData.position === 'teacher' ? 'text-emerald-700 font-medium' : 'text-gray-600'}>
-                  อาจารย์
-                </span>
-              </label>
-            </RadioGroup>
-          </div>
-
-          <Button
-            type="submit"
+          <Button 
+            type="submit" 
             disabled={loading}
-            className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-base font-medium mt-6"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-6 rounded-2xl transition-all"
           >
-            {loading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                กำลังบันทึก...
-              </>
-            ) : (
-              "ยืนยันการลงทะเบียน"
-            )}
+            {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
+            บันทึกข้อมูล
           </Button>
         </form>
       </CardContent>

@@ -1,108 +1,81 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Leaf, Loader2, TreeDeciduous } from "lucide-react";
-import PlantCard from "@/components/plants/PlantCard";
-import SearchFilter from "@/components/plants/SearchFilter";
-import ProfileSetupForm from "@/components/profile/ProfileSetupForm";
+import React from 'react';
+/* ลบ Share2 ออกเพื่อแก้ ESLint unused-imports */
+import { Leaf, Cpu, MapPin, ChevronRight } from "lucide-react"; 
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+const IT_GARDEN_DATA = {
+  department_name: "เทคโนโลยีสารสนเทศ",
+  zone: "อาคาร 9 (IT Building)",
+  plants: [
+    {
+      id: 'it_01',
+      common_name: 'ต้นล่ำซำ',
+      scientific_name: 'Diospyros buxifolia',
+      images: ["https://images.unsplash.com/photo-1599023344186-061614243573?w=800"],
+      short_desc: 'ไม้มงคลใบสวย ปลูกประดับหน้าอาคาร IT'
+    },
+    {
+      id: 'it_02',
+      common_name: 'ไทรเกาหลี',
+      scientific_name: 'Ficus annulata',
+      images: ["https://images.unsplash.com/photo-1584444262846-e2716db1294b?w=800"],
+      short_desc: 'กำแพงสีเขียวเพิ่มความสดชื่นรอบลานจอดรถแผนก'
+    }
+  ]
+};
 
 export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [needsSetup, setNeedsSetup] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authenticated = await base44.auth.isAuthenticated();
-        setIsAuthenticated(authenticated);
-        if (authenticated) {
-          const userData = await base44.auth.me();
-          // เช็คว่ากรอกข้อมูลพื้นฐานครบหรือยัง
-          if (!userData?.id_card_number || !userData?.position) {
-            setNeedsSetup(true);
-          }
-        }
-      } catch {
-        // แก้ไข: ลบ (e) ออกเพื่อเคลียร์ Error 'e' is defined but never used
-        setIsAuthenticated(false);
-      }
-      setCheckingAuth(false);
-    };
-    checkAuth();
-  }, []);
-
-  const { data: rawPlants, isLoading } = useQuery({
-    queryKey: ['plants'],
-    queryFn: () => base44.entities.Plant.list('-created_date'),
-  });
-
-  const plants = Array.isArray(rawPlants) ? rawPlants : [];
-
-  const filteredPlants = plants.filter(plant => {
-    if (!plant) return false;
-    const nameMatch = (plant.common_name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-    const sciMatch = (plant.scientific_name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-    const matchesDept = selectedDepartment === 'all' || plant.department === selectedDepartment;
-    return (nameMatch || sciMatch) && matchesDept;
-  });
-
-  if (checkingAuth) return (
-    <div className="flex h-screen items-center justify-center bg-white">
-      <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-    </div>
-  );
-
-  if (needsSetup && isAuthenticated) {
-    return <ProfileSetupForm onComplete={() => setNeedsSetup(false)} />;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-gradient-to-r from-emerald-600 to-green-700 text-white p-8 pt-12 text-center shadow-lg">
-        <TreeDeciduous className="mx-auto mb-4 h-16 w-16 bg-white/20 p-3 rounded-2xl" />
-        <h1 className="text-2xl font-bold">ฐานข้อมูลพันธุ์พืช</h1>
-        <p className="text-emerald-100 opacity-90">วิทยาลัยเทคนิคสระแก้ว</p>
+    <div className="min-h-screen bg-slate-50 pb-20">
+      {/* Header Section */}
+      <div className="bg-[#1e1b4b] text-white p-10 pt-16 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 opacity-10">
+          <Cpu size={150} />
+        </div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="bg-indigo-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">Digital Garden</span>
+          </div>
+          <h1 className="text-3xl font-black tracking-tight leading-none">IT GARDEN</h1>
+          <p className="text-indigo-300 text-sm mt-2 flex items-center gap-1 font-medium">
+             แผนก{IT_GARDEN_DATA.department_name}
+          </p>
+        </div>
       </div>
 
-      <div className="p-4 max-w-md mx-auto">
-        <div className="mb-6 flex items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-emerald-50">
-          <div className="bg-emerald-100 p-3 rounded-xl">
-            <Leaf className="h-8 w-8 text-emerald-600" />
-          </div>
+      <div className="p-5 max-w-md mx-auto -mt-8">
+        {/* Statistics Card */}
+        <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-indigo-50 flex items-center justify-between mb-8">
           <div>
-            <p className="text-3xl font-black text-emerald-950">{plants.length}</p>
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">พืชทั้งหมดในระบบ</p>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">Plants Catalog</p>
+            <p className="text-4xl font-black text-indigo-950">{IT_GARDEN_DATA.plants.length} <span className="text-lg font-normal text-slate-400">ชนิด</span></p>
+          </div>
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl shadow-lg shadow-indigo-200">
+            <Leaf className="h-7 w-7 text-white" />
           </div>
         </div>
 
-        <SearchFilter 
-          searchTerm={searchTerm} 
-          setSearchTerm={setSearchTerm} 
-          selectedDepartment={selectedDepartment} 
-          setSelectedDepartment={setSelectedDepartment} 
-        />
-
-        {isLoading ? (
-          <div className="py-20 text-center">
-            <Loader2 className="mx-auto h-10 w-10 animate-spin text-emerald-600" />
-            <p className="mt-4 text-gray-400 font-medium">กำลังโหลดข้อมูล...</p>
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-4">
-            {filteredPlants.length > 0 ? (
-              filteredPlants.map(plant => (
-                <PlantCard key={plant.id} plant={plant} />
-              ))
-            ) : (
-              <div className="bg-white rounded-2xl p-10 text-center border-2 border-dashed border-gray-100">
-                <p className="text-gray-400">ไม่พบข้อมูลพืชที่ค้นหา</p>
+        <div className="space-y-4">
+          {IT_GARDEN_DATA.plants.map(plant => (
+            /* แก้ไขตรงนี้: ใช้ Template Literal เพื่อส่ง 1 Argument ตามที่ TS ต้องการ */
+            <Link key={plant.id} to={`${createPageUrl("PlantDetail")}?id=${plant.id}`}>
+              <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:border-indigo-200 transition-all active:scale-[0.98]">
+                <img src={plant.images[0]} className="w-20 h-20 rounded-xl object-cover shadow-inner" alt={plant.common_name} />
+                <div className="flex-1">
+                  <h4 className="font-bold text-slate-900 leading-tight">{plant.common_name}</h4>
+                  <p className="text-[11px] text-slate-400 italic mb-2 leading-none">{plant.scientific_name}</p>
+                  <p className="text-[11px] text-indigo-600 font-bold flex items-center gap-1">
+                    <MapPin size={10} /> {IT_GARDEN_DATA.zone}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-2 rounded-full">
+                  <ChevronRight className="text-slate-300 h-4 w-4" />
+                </div>
               </div>
-            )}
-          </div>
-        )}
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
