@@ -5,7 +5,6 @@ import { queryClientInstance } from '@/lib/query-client'
 import { PAGES, pagesConfig } from './pages.config'
 import { Route, Routes, Navigate } from 'react-router-dom'; 
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Loader2 } from "lucide-react";
 
 const Layout = pagesConfig?.Layout;
@@ -19,15 +18,9 @@ const LayoutWrapper = ({ children, currentPageName }) => {
 };
 
 const AuthenticatedApp = () => {
-  const { 
-    isLoadingAuth, 
-    isLoadingPublicSettings, 
-    authError, 
-    isAuthenticated, // ดึงสถานะยืนยันตัวตนมาใช้
-    user 
-  } = useAuth() || {};
+  const { isLoadingAuth, isLoadingPublicSettings } = useAuth() || {};
 
-  // 1. จัดการเรื่อง Loading
+  // 1. Loading แป๊บเดียวเพื่อให้ดูสมจริง
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="flex h-screen items-center justify-center bg-white">
@@ -36,16 +29,8 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // 2. ปรับ logic การเช็คสิทธิ์ (แก้จุดนี้เพื่อให้ Login แล้วอยู่ยาว)
-  // ถ้ามี User หรือยืนยันตัวตนผ่านแล้ว ให้ข้ามหน้าสมัครสมาชิกไปเลย
-  if (authError && !user) {
-    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
-    if (authError.type === 'auth_required') {
-       // แทนที่จะดีดไป Login ทันที ให้ลองปล่อยผ่านไปหน้า Routes ก่อน 
-       // หรือจะให้เรียกหน้า Login เฉพาะตอนที่ไม่มี data จริงๆ
-       console.log("Authentication required, but proceeding to app shell...");
-    }
-  }
+  // 2. ตัดส่วน if (authError) ทิ้งไปเลย เพื่อให้ทะลุเข้า Routes ได้ 100%
+  // ไม่ว่า Base44 จะ Error อะไรมา เราไม่สนใจ เราจะไปหน้า Home
 
   return (
     <Routes>
