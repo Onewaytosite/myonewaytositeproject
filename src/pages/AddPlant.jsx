@@ -1,79 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import PlantForm from "@/components/plants/PlantForm";
-import ProfileSetupForm from "@/components/profile/ProfileSetupForm";
+import React, { useState } from 'react';
+import { Save, Camera, ArrowLeft } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 export default function AddPlant() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [needsSetup, setNeedsSetup] = useState(false);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const authenticated = await base44.auth.isAuthenticated();
-      if (!authenticated) {
-        base44.auth.redirectToLogin(createPageUrl("AddPlant"));
-        return;
-      }
-      const userData = await base44.auth.me();
-      setUser(userData);
-      if (!userData.id_card_number || !userData.position) {
-        setNeedsSetup(true);
-      }
-    } catch (error) {
-      base44.auth.redirectToLogin(createPageUrl("AddPlant"));
-    }
-    setLoading(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (needsSetup) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 p-4 flex items-center justify-center">
-        <ProfileSetupForm onComplete={() => {
-          setNeedsSetup(false);
-          checkAuth();
-        }} />
-      </div>
-    );
-  }
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ name: '', sci: '', zone: '', desc: '' });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 pt-11">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <Link to={createPageUrl("Home")}>
-            <Button variant="ghost" size="icon" className="rounded-xl h-9 w-9">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <h1 className="font-semibold text-gray-900 text-lg">เพิ่มข้อมูลพืช</h1>
-        </div>
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="flex items-center gap-4 mb-8">
+        <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-xl shadow-sm"><ArrowLeft /></button>
+        <h1 className="text-xl font-bold">ลงทะเบียนต้นไม้ใหม่</h1>
       </div>
 
-      <div className="px-4 py-4">
-        <PlantForm 
-          user={user} 
-          onSuccess={() => {
-            window.location.href = createPageUrl("Home");
-          }} 
-        />
+      <div className="space-y-6">
+        <div className="w-full h-48 bg-slate-200 rounded-3xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
+          <Camera size={40} className="mb-2" />
+          <p className="text-sm">อัปโหลดรูปต้นไม้</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm space-y-4">
+          <input className="w-full p-4 bg-slate-50 rounded-2xl border-none" placeholder="ชื่อสามัญ (ภาษาไทย)" />
+          <input className="w-full p-4 bg-slate-50 rounded-2xl border-none" placeholder="ชื่อวิทยาศาสตร์" />
+          <textarea className="w-full p-4 bg-slate-50 rounded-2xl border-none h-32" placeholder="สรรพคุณ / รายละเอียด" />
+          
+          <button className="w-full bg-[#1e1b4b] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2">
+            <Save size={18} /> บันทึกเข้าคลังข้อมูล
+          </button>
+        </div>
       </div>
     </div>
   );

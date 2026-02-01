@@ -5,12 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Save } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 export default function ProfileSetupForm({ onComplete }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
-    email: '', // เพิ่มช่องอีเมล
+    email: '',
     id_card_number: '',
     student_teacher_id: '',
     position: ''
@@ -21,17 +23,22 @@ export default function ProfileSetupForm({ onComplete }) {
     try {
       setLoading(true);
       
-      // บันทึกลง localStorage (ทำงานแทน API ชั่วคราวเพื่อให้ข้อมูลแสดงผลในหน้า Profile)
-      localStorage.setItem('mock_user_data', JSON.stringify({
+      const userData = {
         ...formData,
-        avatar_url: ""
-      }));
-
-      // หน่วงเวลาเล็กน้อยให้ดูเหมือนมีการบันทึกจริง
+        avatar_url: "" 
+      };
+      
+      localStorage.setItem('user_profile_info', JSON.stringify(userData));
       await new Promise(resolve => setTimeout(resolve, 800));
       
       alert("บันทึกข้อมูลเรียบร้อยแล้ว");
-      if (onComplete) await onComplete();
+      
+      if (onComplete) {
+        await onComplete();
+      }
+
+      navigate('/Home'); 
+
     } catch (error) {
       console.error("Update failed:", error);
       alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
@@ -62,7 +69,7 @@ export default function ProfileSetupForm({ onComplete }) {
             />
           </div>
 
-          {/* อีเมล (เพิ่มใหม่) */}
+          {/* อีเมล */}
           <div className="space-y-2">
             <Label htmlFor="email">อีเมล</Label>
             <Input 
@@ -79,7 +86,7 @@ export default function ProfileSetupForm({ onComplete }) {
           {/* สถานะ */}
           <div className="space-y-2">
             <Label htmlFor="position">สถานะ</Label>
-            <Select onValueChange={(val) => setFormData({...formData, position: val})}>
+            <Select onValueChange={(val) => setFormData({...formData, position: val})} required>
               <SelectTrigger className="rounded-xl border-slate-200">
                 <SelectValue placeholder="เลือกสถานะ" />
               </SelectTrigger>
