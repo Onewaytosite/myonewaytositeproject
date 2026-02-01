@@ -2,10 +2,10 @@ import React from 'react';
 import { Leaf, Cpu, MapPin, ChevronRight } from "lucide-react"; 
 import { Link } from "react-router-dom";
 
-export const GARDEN_DATA = {
+const GARDEN_DATA = {
   college_name: "วิทยาลัยเทคนิคสระแก้ว",
   department_name: "เทคโนโลยีสารสนเทศ",
-  zone: "หลังอาคาร 60ปี (IT GARDEN)",
+  zone: "สวนพฤกษศาสตร์ (IT GARDEN)",
   plants: [
     {
       id: 'it_01',
@@ -27,6 +27,7 @@ export const GARDEN_DATA = {
 export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
+      {/* Header */}
       <div className="bg-[#1e1b4b] text-white p-10 pt-16 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 opacity-10">
           <Cpu size={150} />
@@ -42,16 +43,18 @@ export default function Home() {
       </div>
 
       <div className="p-5 max-w-md mx-auto -mt-8">
+        {/* Stats Card */}
         <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-indigo-50 flex items-center justify-between mb-8">
           <div>
             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">Plants Catalog</p>
             <p className="text-4xl font-black text-indigo-950">{GARDEN_DATA.plants.length} <span className="text-lg font-normal text-slate-400">ชนิด</span></p>
           </div>
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl shadow-lg">
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl">
             <Leaf className="h-7 w-7 text-white" />
           </div>
         </div>
 
+        {/* Plant List */}
         <div className="space-y-4">
           {GARDEN_DATA.plants.map(plant => (
             <Link key={plant.id} to={`/PlantDetail/${plant.id}`}>
@@ -59,9 +62,19 @@ export default function Home() {
                 <img src={plant.images[0]} className="w-20 h-20 rounded-xl object-cover shadow-inner" alt={plant.common_name} />
                 <div className="flex-1">
                   <h4 className="font-bold text-slate-900 leading-tight">{plant.common_name}</h4>
-                  <p className="text-[11px] text-slate-400 italic mb-2">{plant.scientific_name}</p>
+                  <p className="text-[11px] text-slate-400 italic mb-2 leading-none">{plant.scientific_name}</p>
                   <p className="text-[11px] text-indigo-600 font-bold flex items-center gap-1">
                     <MapPin size={10} /> {GARDEN_DATA.zone}
                   </p>
                 </div>
-                <div className="bg-slate-50 p-
+                <div className="bg-slate-50 p-2 rounded-full">
+                  <ChevronRight className="text-slate-300 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
