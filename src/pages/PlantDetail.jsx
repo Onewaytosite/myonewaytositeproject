@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; 
-import { ArrowLeft, Droplets, Sun, MapPin, BookOpen, Thermometer } from "lucide-react";
+import { ArrowLeft, Droplets, Sun, MapPin, Thermometer } from "lucide-react";
 
-// ข้อมูลรายละเอียด (สามารถดึงมารวมกันหรือแยกไฟล์ได้)
 const PLANT_DETAILS = {
   "it_01": {
     name: 'ต้นฝรั่ง',
@@ -27,6 +26,18 @@ export default function PlantDetail() {
   const navigate = useNavigate();
   const plant = PLANT_DETAILS[id];
 
+  useEffect(() => {
+    window.history.pushState(null, null, window.location.pathname);
+    const handleBackButton = (e) => {
+      e.preventDefault();
+      navigate(-1);
+    };
+    window.addEventListener('popstate', handleBackButton);
+    return () => {
+      window.removeEventListener('popstate', handleBackButton);
+    };
+  }, [navigate]);
+
   if (!plant) {
     return (
       <div className="h-screen flex flex-col items-center justify-center p-6 text-center">
@@ -41,7 +52,10 @@ export default function PlantDetail() {
       <div className="relative h-[40vh] w-full">
         <img src={plant.image} alt={plant.name} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        <button onClick={() => navigate(-1)} className="absolute top-12 left-6 p-3 bg-white/90 backdrop-blur rounded-2xl shadow-lg active:scale-95 transition-all">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="absolute top-10 left-6 p-3 bg-white/90 backdrop-blur rounded-2xl shadow-lg active:scale-95 transition-all z-20"
+        >
           <ArrowLeft size={20} className="text-slate-800" />
         </button>
       </div>
