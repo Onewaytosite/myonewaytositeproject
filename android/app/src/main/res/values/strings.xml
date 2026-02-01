@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">onewaytositeapp</string>
-    <string name="title_activity_main">onewaytositeapp</string>
-    <string name="package_name">com.onewaytosite.app</string>
-    <string name="custom_url_scheme">com.onewaytosite.app</string>
+    <string name="app_name">SKTC Garden</string>
+    <string name="title_activity_main">SKTC Garden</string>
+    <string name="package_name">com.sktc.garden.app</string>
+    <string name="custom_url_scheme">com.sktc.garden.app</string>
 </resources>

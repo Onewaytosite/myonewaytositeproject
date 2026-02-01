@@ -10,6 +10,7 @@ export default function ProfileSetupForm({ onComplete }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
+    email: '', // เพิ่มช่องอีเมล
     id_card_number: '',
     student_teacher_id: '',
     position: ''
@@ -19,22 +20,18 @@ export default function ProfileSetupForm({ onComplete }) {
     e.preventDefault();
     try {
       setLoading(true);
-      // --- เริ่มการ Mock บันทึกข้อมูล ---
-      console.log("Mocking saving data:", formData);
       
-      // เก็บข้อมูลไว้ใน localStorage ชั่วคราวเพื่อให้หน้า Profile ดึงไปใช้ต่อได้
+      // บันทึกลง localStorage (ทำงานแทน API ชั่วคราวเพื่อให้ข้อมูลแสดงผลในหน้า Profile)
       localStorage.setItem('mock_user_data', JSON.stringify({
         ...formData,
-        email: "student@sktc.ac.th", // สมมติอีเมล
         avatar_url: ""
       }));
 
-      // จำลองว่าเน็ตช้า 1 วินาที
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // หน่วงเวลาเล็กน้อยให้ดูเหมือนมีการบันทึกจริง
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      alert("บันทึกข้อมูลจำลองสำเร็จ!");
+      alert("บันทึกข้อมูลเรียบร้อยแล้ว");
       if (onComplete) await onComplete();
-      // --- จบการ Mock ---
     } catch (error) {
       console.error("Update failed:", error);
       alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
@@ -46,17 +43,18 @@ export default function ProfileSetupForm({ onComplete }) {
   return (
     <Card className="max-w-md mx-auto border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
       <CardHeader className="bg-indigo-600 text-white p-8">
-        <CardTitle className="text-2xl font-bold text-center">ตั้งค่าโปรไฟล์ (Mock Mode)</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">ตั้งค่าโปรไฟล์</CardTitle>
         <p className="text-indigo-100 text-center text-sm mt-2">กรุณากรอกข้อมูลเพื่อเริ่มต้นใช้งาน</p>
       </CardHeader>
       
       <CardContent className="p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* ชื่อ-นามสกุล */}
           <div className="space-y-2">
             <Label htmlFor="full_name">ชื่อ-นามสกุล</Label>
             <Input 
               id="full_name"
-              placeholder="นายใจดี มีสุข"
+              placeholder="ชื่อ - นามสกุล"
               required
               value={formData.full_name}
               onChange={(e) => setFormData({...formData, full_name: e.target.value})}
@@ -64,6 +62,21 @@ export default function ProfileSetupForm({ onComplete }) {
             />
           </div>
 
+          {/* อีเมล (เพิ่มใหม่) */}
+          <div className="space-y-2">
+            <Label htmlFor="email">อีเมล</Label>
+            <Input 
+              id="email"
+              type="email"
+              placeholder="example@sktc.ac.th"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="rounded-xl border-slate-200"
+            />
+          </div>
+
+          {/* สถานะ */}
           <div className="space-y-2">
             <Label htmlFor="position">สถานะ</Label>
             <Select onValueChange={(val) => setFormData({...formData, position: val})}>
@@ -77,6 +90,7 @@ export default function ProfileSetupForm({ onComplete }) {
             </Select>
           </div>
 
+          {/* เลขบัตรประชาชน */}
           <div className="space-y-2">
             <Label htmlFor="id_card_number">เลขบัตรประชาชน (13 หลัก)</Label>
             <Input 
@@ -90,6 +104,7 @@ export default function ProfileSetupForm({ onComplete }) {
             />
           </div>
 
+          {/* รหัสประจำตัว */}
           <div className="space-y-2">
             <Label htmlFor="student_id">รหัสประจำตัว / เบอร์โทรศัพท์</Label>
             <Input 
@@ -105,10 +120,10 @@ export default function ProfileSetupForm({ onComplete }) {
           <Button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-6 rounded-2xl transition-all"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-6 rounded-2xl transition-all mt-4"
           >
             {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
-            บันทึกข้อมูล (Mock)
+            บันทึกข้อมูล
           </Button>
         </form>
       </CardContent>

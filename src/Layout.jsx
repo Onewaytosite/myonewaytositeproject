@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, User } from "lucide-react"; // เอา Plus ออกแล้ว
+import { Home, User, Leaf } from "lucide-react"; 
 import { useNavigate } from 'react-router-dom'; 
 import { base44 } from "@/api/base44Client";
 
@@ -19,14 +19,12 @@ export default function Layout({ children, currentPageName }) {
     checkAuth();
   }, []);
 
-  // แก้ตรงนี้: เอา "เพิ่มพืช" ออกไปแล้ว เหลือแค่ 2 เมนู
   const navItems = [
     { label: 'หน้าหลัก', icon: Home, path: '/Home', page: 'Home' },
     { label: 'โปรไฟล์', icon: User, path: '/Profile', page: 'Profile' }
   ];
 
   const handleNavClick = (path, page) => {
-    // แก้ Logic ตรงนี้ให้เช็คเฉพาะ Profile เพราะ AddPlant ไม่มีแล้ว
     if (page === 'Profile' && !isAuthenticated) {
        base44.auth.redirectToLogin(window.location.origin + path);
        return;
@@ -38,11 +36,20 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* ส่วนหัวสำหรับ Mobile */}
-      <div className="fixed top-0 left-0 right-0 h-11 bg-indigo-900 z-50" /> {/* เปลี่ยนสีเป็นโทนน้ำเงินให้เข้ากับ SKTC Garden */}
+      {/* --- ส่วนหัวแอป (แก้ชื่อแอปตรงนี้) --- */}
+      <div className="fixed top-0 left-0 right-0 h-14 bg-indigo-900 z-50 flex items-center px-4 shadow-lg">
+        <div className="flex items-center gap-2">
+          <div className="bg-white/20 p-1.5 rounded-lg">
+            <Leaf className="text-white w-5 h-5" />
+          </div>
+          <span className="text-white font-bold text-lg tracking-wide">
+            SKTC <span className="text-indigo-200">GARDEN</span>
+          </span>
+        </div>
+      </div>
       
-      {/* เนื้อหาหลัก */}
-      <div className={`flex-1 pt-11 ${shouldShowNav ? 'pb-20' : ''}`}>
+      {/* เนื้อหาหลัก - ขยับ pt-14 ให้พ้นความสูง Header ใหม่ */}
+      <div className={`flex-1 pt-14 ${shouldShowNav ? 'pb-20' : ''}`}>
         {children}
       </div>
 
