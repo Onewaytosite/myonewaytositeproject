@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { base44 } from "@/api/base44Client";
 import { Loader2, Save } from "lucide-react";
 
 export default function ProfileSetupForm({ onComplete }) {
@@ -20,8 +19,22 @@ export default function ProfileSetupForm({ onComplete }) {
     e.preventDefault();
     try {
       setLoading(true);
-      await base44.auth.update(formData); 
+      // --- เริ่มการ Mock บันทึกข้อมูล ---
+      console.log("Mocking saving data:", formData);
+      
+      // เก็บข้อมูลไว้ใน localStorage ชั่วคราวเพื่อให้หน้า Profile ดึงไปใช้ต่อได้
+      localStorage.setItem('mock_user_data', JSON.stringify({
+        ...formData,
+        email: "student@sktc.ac.th", // สมมติอีเมล
+        avatar_url: ""
+      }));
+
+      // จำลองว่าเน็ตช้า 1 วินาที
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      alert("บันทึกข้อมูลจำลองสำเร็จ!");
       if (onComplete) await onComplete();
+      // --- จบการ Mock ---
     } catch (error) {
       console.error("Update failed:", error);
       alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
@@ -33,7 +46,7 @@ export default function ProfileSetupForm({ onComplete }) {
   return (
     <Card className="max-w-md mx-auto border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
       <CardHeader className="bg-indigo-600 text-white p-8">
-        <CardTitle className="text-2xl font-bold text-center">ตั้งค่าโปรไฟล์</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">ตั้งค่าโปรไฟล์ (Mock Mode)</CardTitle>
         <p className="text-indigo-100 text-center text-sm mt-2">กรุณากรอกข้อมูลเพื่อเริ่มต้นใช้งาน</p>
       </CardHeader>
       
@@ -95,7 +108,7 @@ export default function ProfileSetupForm({ onComplete }) {
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-6 rounded-2xl transition-all"
           >
             {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
-            บันทึกข้อมูล
+            บันทึกข้อมูล (Mock)
           </Button>
         </form>
       </CardContent>
