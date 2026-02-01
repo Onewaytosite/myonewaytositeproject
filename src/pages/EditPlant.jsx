@@ -1,13 +1,32 @@
-// src/pages/EditPlant.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Save, Upload, MapPin, ArrowLeft } from "lucide-react";
-import { getPlantById, updatePlant } from '@/data/plant-storage';
+// ลบ Textarea ออกแล้วเพราะในฟอร์มด้านล่างไม่ได้เรียกใช้
+import { Loader2, Save, MapPin, ArrowLeft } from "lucide-react";
+
+const GARDEN_DATA = {
+  plants: [
+    {
+      id: 'it_01',
+      common_name: 'ต้นฝรั่ง',
+      scientific_name: 'Psidium guajava L.',
+      images: ["/workpic1.jfif"],
+      description: 'วิตามินซีสูง ช่วยบำรุงเหงือกและฟัน',
+      care: 'รดน้ำวันละครั้ง ชอบแดด'
+    },
+    {
+      id: 'it_02',
+      common_name: 'ต้นมะม่วง',
+      scientific_name: 'Mangifera Indica',
+      images: ["/workpic2.jfif"],
+      description: 'บำรุงสายตาและระบบขับถ่าย',
+      care: 'รดน้ำสม่ำเสมอ'
+    }
+  ]
+};
 
 export default function EditPlant() {
   const { id } = useParams();
@@ -16,21 +35,25 @@ export default function EditPlant() {
   const [formData, setFormData] = useState({
     name: '',
     scienceName: '',
-    location: '',
+    location: 'IT GARDEN',
     description: '',
     care: '',
     image: ''
   });
 
   useEffect(() => {
-    const plantToEdit = getPlantById(id);
+    const plantToEdit = GARDEN_DATA.plants.find(p => p.id === id);
     if (plantToEdit) {
-      setFormData(plantToEdit);
-    } else {
-      alert("ไม่พบข้อมูลต้นไม้ที่จะแก้ไข");
-      navigate('/Home');
+      setFormData({
+        name: plantToEdit.common_name,
+        scienceName: plantToEdit.scientific_name,
+        location: 'IT GARDEN',
+        description: plantToEdit.description || '',
+        care: plantToEdit.care || '',
+        image: plantToEdit.images[0]
+      });
     }
-  }, [id, navigate]);
+  }, [id]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -47,130 +70,59 @@ export default function EditPlant() {
     e.preventDefault();
     try {
       setLoading(true);
-      updatePlant(formData); // ส่ง id ไปด้วย
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API call
-      alert(`อัปเดตข้อมูล ${formData.name} เรียบร้อยแล้ว`);
-      navigate(`/PlantDetail/${id}`); // กลับไปหน้า Detail ของต้นไม้ต้นนั้น
-    } catch (error) {
-      console.error("Failed to update plant:", error);
-      alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูลต้นไม้");
+      await new Promise(resolve => setTimeout(resolve, 800));
+      alert(`บันทึกข้อมูล ${formData.name} เรียบร้อยแล้ว`);
+      navigate(`/PlantDetail/${id}`);
+    } catch (err) { // เปลี่ยนจาก error เป็น err หรือถ้าไม่ใช้ให้เอาออก
+      console.error("Update failed:", err);
+      alert("เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card className="max-w-xl mx-auto border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white mt-10">
-      <CardHeader className="bg-orange-600 text-white p-8 relative">
-        <button 
-          onClick={() => navigate(-1)}
-          className="absolute top-6 left-6 p-2 bg-white/20 backdrop-blur rounded-full shadow-lg"
-        >
-          <ArrowLeft size={24} className="text-white" />
-        </button>
-        <CardTitle className="text-2xl font-bold text-center mt-4">แก้ไขข้อมูลต้นไม้</CardTitle>
-        <p className="text-orange-100 text-center text-sm mt-2">อัปเดตข้อมูลของ {formData.name}</p>
-      </CardHeader>
-      
-      <CardContent className="p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* ... ส่วน Input เหมือน AddPlant.jsx ... */}
-          {/* ชื่อต้นไม้ (ไทย) */}
-          <div className="space-y-2">
-            <Label htmlFor="name">ชื่อต้นไม้ (ภาษาไทย)</Label>
-            <Input 
-              id="name"
-              placeholder="เช่น ต้นฝรั่ง"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="rounded-xl border-slate-200"
-            />
-          </div>
-
-          {/* ชื่อวิทยาศาสตร์ */}
-          <div className="space-y-2">
-            <Label htmlFor="scienceName">ชื่อวิทยาศาสตร์</Label>
-            <Input 
-              id="scienceName"
-              placeholder="เช่น Psidium guajava L."
-              required
-              value={formData.scienceName}
-              onChange={(e) => setFormData({...formData, scienceName: e.target.value})}
-              className="rounded-xl border-slate-200"
-            />
-          </div>
-
-          {/* พิกัด / สถานที่ */}
-          <div className="space-y-2">
-            <Label htmlFor="location">พิกัด/สถานที่ปลูก</Label>
-            <div className="relative flex items-center">
-              <MapPin className="absolute left-3 text-slate-400" size={18} />
-              <Input 
-                id="location"
-                placeholder="เช่น หลังอาคาร 60 ปี (IT GARDEN)"
-                required
-                value={formData.location}
-                onChange={(e) => setFormData({...formData, location: e.target.value})}
-                className="rounded-xl border-slate-200 pl-10"
-              />
+    <div className="min-h-screen bg-slate-50 p-4">
+      <Card className="max-w-xl mx-auto border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white mt-10">
+        <CardHeader className="bg-orange-600 text-white p-8 relative">
+          <button onClick={() => navigate(-1)} className="absolute top-6 left-6 p-2 bg-white/20 backdrop-blur rounded-full">
+            <ArrowLeft size={24} className="text-white" />
+          </button>
+          <CardTitle className="text-2xl font-bold text-center mt-4">แก้ไขข้อมูลต้นไม้</CardTitle>
+        </CardHeader>
+        
+        <CardContent className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">ชื่อต้นไม้</Label>
+              <Input id="name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
             </div>
-          </div>
 
-          {/* รายละเอียด/สรรพคุณ */}
-          <div className="space-y-2">
-            <Label htmlFor="description">รายละเอียด/สรรพคุณ</Label>
-            <Textarea 
-              id="description"
-              placeholder="เช่น เป็นไม้ผลให้วิตามินซีสูง..."
-              required
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              className="rounded-xl border-slate-200 min-h-[100px]"
-            />
-          </div>
-
-          {/* การดูแลรักษา */}
-          <div className="space-y-2">
-            <Label htmlFor="care">การดูแลรักษา</Label>
-            <Textarea 
-              id="care"
-              placeholder="เช่น ชอบแดดจัด รดน้ำวันละ 1 ครั้ง..."
-              required
-              value={formData.care}
-              onChange={(e) => setFormData({...formData, care: e.target.value})}
-              className="rounded-xl border-slate-200 min-h-[80px]"
-            />
-          </div>
-
-          {/* รูปภาพต้นไม้ */}
-          <div className="space-y-2">
-            <Label htmlFor="image-upload">อัปโหลดรูปภาพต้นไม้</Label>
-            <Input 
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="rounded-xl border-slate-200 file:text-orange-600 file:font-semibold"
-            />
-            {formData.image && (
-              <div className="mt-4 flex flex-col items-center">
-                <img src={formData.image} alt="Preview" className="w-32 h-32 object-cover rounded-xl shadow-md" />
-                <p className="text-sm text-slate-500 mt-2">รูปภาพที่เลือก</p>
+            <div className="space-y-2">
+              <Label htmlFor="location">พิกัด</Label>
+              <div className="relative flex items-center">
+                <MapPin className="absolute left-3 text-slate-400" size={18} />
+                <Input id="location" className="pl-10" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
               </div>
-            )}
-          </div>
+            </div>
 
-          <Button 
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 rounded-2xl transition-all mt-6"
-          >
-            {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
-            บันทึกการแก้ไข
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+            <div className="space-y-2">
+              <Label htmlFor="image-upload">เปลี่ยนรูปภาพ</Label>
+              <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} />
+              {formData.image && (
+                <div className="mt-4 flex justify-center">
+                  <img src={formData.image} alt="Preview" className="w-32 h-32 object-cover rounded-xl border" />
+                </div>
+              )}
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full bg-orange-600 hover:bg-orange-700 h-14 rounded-2xl">
+              {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
+              บันทึกการแก้ไข
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
