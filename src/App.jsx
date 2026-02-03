@@ -1,40 +1,47 @@
 import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { App as CapApp } from '@capacitor/app'; // ต้องลงเพิ่ม: npm install @capacitor/app
+import { App as CapApp } from '@capacitor/app';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import PlantDetail from './pages/PlantDetail';
 
-// สร้าง Component ย่อยเพื่อใช้ hook ภายใน Router
 function BackButtonHandler() {
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const handler = CapApp.addListener('backButton', ({ canGoBack }) => {
-      if (location.pathname === '/Home' || location.pathname === '/Profile') {
-        // ถ้าอยู่หน้าหลักๆ แล้วกด back ให้ปิดแอป (หรือถ้านายอยากให้เด้งไป Home เสมอก็แก้ตรงนี้)
+    // สร้างฟังก์ชัน Listener
+    const backListener = CapApp.addListener('backButton', (data) => {
+      // ตรวจสอบ Path ปัจจุบัน
+      const currentPath = location.pathname;
+
+      if (currentPath === '/Home' || currentPath === '/Profile' || currentPath === '/') {
+        // ถ้าอยู่หน้าหลัก ให้ปิดแอปทันที
         CapApp.exitApp();
       } else {
-        // ถ้าอยู่หน้าย่อย (เช่น Detail) ให้ย้อนกลับไปหน้าก่อนหน้า
+        // ถ้าอยู่หน้าย่อย (เช่น PlantDetail) ให้ย้อนกลับไปหน้าก่อนหน้า 1 step
         navigate(-1);
       }
     });
 
+    // คืนค่าฟังก์ชันเพื่อลบ Listener เมื่อไม่ได้ใช้ (Clean up)
     return () => {
-      handler.then(h => h.remove());
+      backListener.then(res => res.remove());
     };
-  }, [location, navigate]);
+  }, [location, navigate]); // ใส่ dependencies ให้ครบเพื่อให้ทำงานตามหน้าปัจจุบัน
 
   return null;
 }
 
 function App() {
+  // ตรวจสอบว่าเคยกรอกโปรไฟล์หรือยัง
   const isAuthenticated = !!localStorage.getItem('user_profile_info');
 
   return (
     <Router>
+      {/* ต้องวาง BackButtonHandler ไว้ใต้ Router เพื่อให้ใช้ hooks ได้ */}
       <BackButtonHandler />
+      
       <Routes>
         <Route path="/" element={isAuthenticated ? <Navigate to="/Home" /> : <Navigate to="/Profile" />} />
         <Route path="/Home" element={<Home />} />
