@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Leaf, Cpu, MapPin, ChevronRight, User } from "lucide-react"; 
-import { Link } from "react-router-dom";
+import { Leaf, Cpu, MapPin, ChevronRight, User, Home as HomeIcon } from "lucide-react"; 
+import { Link, useNavigate } from "react-router-dom";
 
 const GARDEN_DATA = {
   college_name: "วิทยาลัยเทคนิคสระแก้ว",
@@ -24,9 +24,9 @@ const GARDEN_DATA = {
 
 export default function Home() {
   const [userData, setUserData] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // ดึงข้อมูล JSON จาก localStorage ที่บันทึกไว้จากหน้า Profile
     const savedData = localStorage.getItem('user_profile_info');
     if (savedData) {
       setUserData(JSON.parse(savedData));
@@ -34,12 +34,22 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-slate-50 pb-32"> {/* เพิ่ม pb-32 เพื่อไม่ให้ปุ่มเมนูบังลิสต์ท้ายๆ */}
+      
       {/* Header */}
-      <div className="bg-[#1e1b4b] text-white p-10 pt-16 shadow-2xl relative overflow-hidden">
+      <div className="bg-[#1e1b4b] text-white p-10 pt-20 shadow-2xl relative overflow-hidden">
+        {/* --- ปุ่ม Profile ขวาบน --- */}
+        <Link 
+          to="/Profile" 
+          className="absolute top-12 right-6 z-50 bg-white/10 p-2.5 rounded-2xl backdrop-blur-md border border-white/20 active:scale-90 transition-all shadow-lg"
+        >
+          <User size={24} className="text-white" />
+        </Link>
+
         <div className="absolute top-0 right-0 opacity-10">
           <Cpu size={150} />
         </div>
+        
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2">
              <span className="bg-indigo-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">Digital Garden</span>
@@ -50,7 +60,6 @@ export default function Home() {
              )}
           </div>
           
-          {/* แสดงชื่อผู้ใช้จาก JSON */}
           <h1 className="text-2xl font-bold tracking-tight">
             สวัสดี, <span className="text-indigo-400">{userData?.full_name || 'ผู้เยี่ยมชม'}</span>
           </h1>
@@ -69,7 +78,7 @@ export default function Home() {
             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">Plants Catalog</p>
             <p className="text-4xl font-black text-indigo-950">{GARDEN_DATA.plants.length} <span className="text-lg font-normal text-slate-400">ชนิด</span></p>
           </div>
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl">
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl shadow-lg shadow-indigo-200">
             <Leaf className="h-7 w-7 text-white" />
           </div>
         </div>
@@ -96,6 +105,20 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      {/* --- ปุ่มเมนูหลัก ซ้ายล่าง --- */}
+      <div className="fixed bottom-8 left-6 z-50">
+        <button 
+          onClick={() => navigate('/Home')}
+          className="bg-[#1e1b4b] text-white px-6 py-4 rounded-2xl shadow-2xl border-2 border-indigo-400/30 flex items-center gap-3 active:scale-95 transition-all group"
+        >
+          <div className="bg-indigo-500 p-1.5 rounded-lg group-active:rotate-12 transition-transform">
+            <HomeIcon size={20} />
+          </div>
+          <span className="font-bold text-sm tracking-wide">เมนูหลัก</span>
+        </button>
+      </div>
+
     </div>
   );
 }

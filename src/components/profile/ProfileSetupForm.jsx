@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, ChevronDown, Save, CreditCard } from "lucide-react";
+import { User, ChevronDown, Save } from "lucide-react";
 
 export default function ProfileSetupForm({ onComplete }) {
   const [formData, setFormData] = useState({
