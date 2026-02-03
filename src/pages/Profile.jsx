@@ -1,9 +1,9 @@
 import React from 'react';
-// สำคัญ: เช็ค Path ตรงนี้ให้ตรงกับโฟลเดอร์ของนายจริง ๆ
 import ProfileSetupForm from "../components/profile/ProfileSetupForm";
 
 export default function Profile() {
-  const userData = localStorage.getItem('user_profile_info');
+  const userDataString = localStorage.getItem('user_profile_info');
+  const userData = userDataString ? JSON.parse(userDataString) : null;
 
   if (!userData) {
     return (
@@ -14,14 +14,21 @@ export default function Profile() {
   }
 
   return (
-    <div className="p-10 text-center">
-      <h1>ยินดีต้อนรับคุณ {JSON.parse(userData).full_name}</h1>
-      <button 
-        onClick={() => { localStorage.removeItem('user_profile_info'); window.location.reload(); }}
-        className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
-      >
-        ออกจากระบบ
-      </button>
+    <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full text-center border border-slate-100">
+        <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl font-bold">
+          {userData.full_name?.charAt(0)}
+        </div>
+        <h1 className="text-xl font-bold text-slate-800">คุณ {userData.full_name}</h1>
+        <p className="text-slate-500 text-sm mb-6">{userData.email}</p>
+        
+        <button 
+          onClick={() => { localStorage.removeItem('user_profile_info'); window.location.href = '/Profile'; }}
+          className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl transition-colors"
+        >
+          ออกจากระบบ
+        </button>
+      </div>
     </div>
   );
-}
+}s
