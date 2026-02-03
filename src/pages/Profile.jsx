@@ -1,38 +1,41 @@
-import React, { useEffect, useState } from 'react';
-// ใช้ ../ เพื่อระบุตำแหน่งที่แน่นอน
-import ProfileSetupForm from "../components/profile/ProfileSetupForm";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ProfileSetupForm from '../components/profile/ProfileSetupForm';
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUserData = localStorage.getItem('user_profile_info');
-    if (savedUserData) {
-      setUser(JSON.parse(savedUserData));
+    const savedData = localStorage.getItem('user_profile_info');
+    if (savedData) {
+      setUser(JSON.parse(savedData));
     }
-    setLoading(false);
   }, []);
 
-  if (loading) return <div className="flex h-screen items-center justify-center">กำลังโหลด...</div>;
+  // ฟังก์ชันนี้จะถูกเรียกเมื่อกดปุ่มใน ProfileSetupForm
+  const onLoginComplete = () => {
+    // ใช้ window.location.replace สำหรับ Capacitor จะชัวร์สุดเรื่องหน้าขาว
+    window.location.replace('#/Home'); 
+  };
 
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        {/* เมื่อล็อกอินเสร็จ ให้ดีดไปหน้า Home ทันที */}
-        <ProfileSetupForm onComplete={() => window.location.href = '#/Home'} />
+        <ProfileSetupForm onComplete={onLoginComplete} />
       </div>
     );
   }
 
+  // ถ้าล็อกอินแล้วแต่หลุดมาหน้านี้ ให้ปุ่มกดไป Home ได้
   return (
     <div className="p-10 text-center">
-      <h1>ยินดีต้อนรับคุณ {user.full_name}</h1>
+      <h2 className="text-xl mb-4">คุณเข้าสู่ระบบแล้ว</h2>
       <button 
-        onClick={() => { localStorage.clear(); window.location.href = '#/Profile'; }}
-        className="mt-4 bg-red-500 text-white p-2 rounded"
+        onClick={() => navigate('/Home')}
+        className="bg-indigo-600 text-white px-6 py-2 rounded-lg"
       >
-        ออกจากระบบ
+        เข้าสู่หน้าหลัก
       </button>
     </div>
   );

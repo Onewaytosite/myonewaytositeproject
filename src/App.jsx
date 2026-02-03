@@ -1,30 +1,32 @@
 import React from 'react';
-// ใช้ HashRouter แทน BrowserRouter เพื่อกันหน้าขาวบนมือถือ
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
+import PlantDetail from './pages/PlantDetail';
+import AddPlant from './pages/AddPlant';
+import EditPlant from './pages/EditPlant';
 
 function App() {
-  // เช็คว่าเคยล็อกอินหรือยัง
-  const userSession = localStorage.getItem('user_profile_info');
+  // เช็คสถานะล็อกอิน
+  const isAuthenticated = !!localStorage.getItem('user_profile_info');
 
   return (
     <Router>
       <Routes>
-        {/* หน้าแรก: ถ้ามี Session ให้ไป Home ถ้าไม่มีให้ไปหน้าล็อกอิน (Profile) */}
+        {/* หน้าแรก: ถ้าล็อกอินแล้วไป Home ถ้ายังไป Profile */}
         <Route 
           path="/" 
-          element={userSession ? <Navigate to="/Home" replace /> : <Navigate to="/Profile" replace />} 
+          element={isAuthenticated ? <Navigate to="/Home" /> : <Navigate to="/Profile" />} 
         />
         
-        {/* เส้นทางไปหน้า Home */}
         <Route path="/Home" element={<Home />} />
-        
-        {/* เส้นทางไปหน้า Profile (ที่มีฟอร์มล็อกอินอยู่ข้างใน) */}
         <Route path="/Profile" element={<Profile />} />
+        <Route path="/PlantDetail/:id" element={<PlantDetail />} />
+        <Route path="/AddPlant" element={<AddPlant />} />
+        <Route path="/EditPlant/:id" element={<EditPlant />} />
 
-        {/* กันเหนียว: ถ้า URL ผิดให้เด้งกลับหน้าแรก */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* กันเหนียวหน้าขาวเมื่อหา URL ไม่เจอ */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
