@@ -25,18 +25,20 @@ export default function ProfileSetupForm({ onComplete }) {
       
       const userData = {
         ...formData,
-        avatar_url: "" 
+        avatar_url: "" // สามารถเพิ่ม logic อัปโหลดรูปทีหลังได้
       };
       
+      // บันทึกลงเครื่อง (ทำหน้าที่ Login)
       localStorage.setItem('user_profile_info', JSON.stringify(userData));
-      await new Promise(resolve => setTimeout(resolve, 800));
       
-      alert("บันทึกข้อมูลเรียบร้อยแล้ว");
+      // หน่วงเวลาให้ดูเหมือนบันทึกลง Server จริงๆ
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       if (onComplete) {
         await onComplete();
       }
 
+      // ดีดไปหน้า Home ทันที
       navigate('/Home'); 
 
     } catch (error) {
@@ -56,7 +58,6 @@ export default function ProfileSetupForm({ onComplete }) {
       
       <CardContent className="p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* ชื่อ-นามสกุล */}
           <div className="space-y-2">
             <Label htmlFor="full_name">ชื่อ-นามสกุล</Label>
             <Input 
@@ -69,7 +70,6 @@ export default function ProfileSetupForm({ onComplete }) {
             />
           </div>
 
-          {/* อีเมล */}
           <div className="space-y-2">
             <Label htmlFor="email">อีเมล</Label>
             <Input 
@@ -83,7 +83,6 @@ export default function ProfileSetupForm({ onComplete }) {
             />
           </div>
 
-          {/* สถานะ */}
           <div className="space-y-2">
             <Label htmlFor="position">สถานะ</Label>
             <Select onValueChange={(val) => setFormData({...formData, position: val})} required>
@@ -97,7 +96,6 @@ export default function ProfileSetupForm({ onComplete }) {
             </Select>
           </div>
 
-          {/* เลขบัตรประชาชน */}
           <div className="space-y-2">
             <Label htmlFor="id_card_number">เลขบัตรประชาชน (13 หลัก)</Label>
             <Input 
@@ -111,7 +109,6 @@ export default function ProfileSetupForm({ onComplete }) {
             />
           </div>
 
-          {/* รหัสประจำตัว */}
           <div className="space-y-2">
             <Label htmlFor="student_id">รหัสประจำตัว / เบอร์โทรศัพท์</Label>
             <Input 

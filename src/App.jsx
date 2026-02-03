@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'; 
+import React from 'react'; 
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -20,27 +20,50 @@ const LayoutWrapper = ({ children, currentPageName }) => {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings } = useAuth() || {};
 
-  // 1. Loading แป๊บเดียวเพื่อให้ดูสมจริง
+  // ตรวจสอบว่ามีข้อมูลโปรไฟล์ในเครื่องหรือยัง (ใช้เป็นตัว Login)
+  const hasProfile = localStorage.getItem('user_profile_info');
+
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="flex h-screen items-center justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
       </div>
     );
   }
 
-  // 2. ตัดส่วน if (authError) ทิ้งไปเลย เพื่อให้ทะลุเข้า Routes ได้ 100%
-  // ไม่ว่า Base44 จะ Error อะไรมา เราไม่สนใจ เราจะไปหน้า Home
-
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/Home" replace />} />
-      <Route path="/Home" element={<LayoutWrapper currentPageName="Home"><PAGES.Home /></LayoutWrapper>} />
-      <Route path="/AddPlant" element={<LayoutWrapper currentPageName="AddPlant"><PAGES.AddPlant /></LayoutWrapper>} />
-      <Route path="/Profile" element={<LayoutWrapper currentPageName="Profile"><PAGES.Profile /></LayoutWrapper>} />
-      <Route path="/PlantDetail/:id" element={<LayoutWrapper currentPageName="PlantDetail"><PAGES.PlantDetail /></LayoutWrapper>} />
-      <Route path="/EditPlant/:id" element={<LayoutWrapper currentPageName="EditPlant"><PAGES.EditPlant /></LayoutWrapper>} />
-      <Route path="*" element={<Navigate to="/Home" replace />} />
+      {/* 1. หน้าแรกสุด: ถ้าไม่มีโปรไฟล์ ให้ไปหน้า Profile (หน้า Setup) ถ้ามีแล้วไป Home */}
+      <Route path="/" element={hasProfile ? <Navigate to="/Home" replace /> : <Navigate to="/Profile" replace />} />
+
+      {/* 2. หน้า Home: ต้องมีโปรไฟล์ถึงเข้าได้ */}
+      <Route path="/Home" element={
+        hasProfile ? (
+          <LayoutWrapper currentPageName="Home"><PAGES.Home /></LayoutWrapper>
+        ) : (
+          <Navigate to="/Profile" replace />
+        )
+      } />
+
+      {/* 3. หน้า Profile: เข้าได้ตลอด (เพื่อไปกรอกข้อมูล) */}
+      <Route path="/Profile" element={
+        <LayoutWrapper currentPageName="Profile"><PAGES.Profile /></LayoutWrapper>
+      } />
+
+      {/* 4. หน้าอื่นๆ: ต้องมีโปรไฟล์ทั้งหมด */}
+      <Route path="/AddPlant" element={
+        hasProfile ? <LayoutWrapper currentPageName="AddPlant"><PAGES.AddPlant /></LayoutWrapper> : <Navigate to="/Profile" replace />
+      } />
+      
+      <Route path="/PlantDetail/:id" element={
+        hasProfile ? <LayoutWrapper currentPageName="PlantDetail"><PAGES.PlantDetail /></LayoutWrapper> : <Navigate to="/Profile" replace />
+      } />
+      
+      <Route path="/EditPlant/:id" element={
+        hasProfile ? <LayoutWrapper currentPageName="EditPlant"><PAGES.EditPlant /></LayoutWrapper> : <Navigate to="/Profile" replace />
+      } />
+
+      <Route path="*" element={<Navigate to={hasProfile ? "/Home" : "/Profile"} replace />} />
     </Routes>
   );
 };

@@ -16,19 +16,24 @@ export default function Profile() {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      // ใช้ key ชื่อเดียวกันกับที่หน้า Setup บันทึก
       const savedUserData = localStorage.getItem('user_profile_info');
       
       if (savedUserData) {
         setUser(JSON.parse(savedUserData));
         setNeedsSetup(false);
       } else {
-        const profile = await base44.auth.me();
-        if (!profile.id_card_number || !profile.position) {
+        // กรณีไม่มีข้อมูลในเครื่อง ลองเช็คจาก API
+        try {
+          const profile = await base44.auth.me();
+          if (!profile.id_card_number || !profile.position) {
+            setNeedsSetup(true);
+          } else {
+            setUser(profile);
+            setNeedsSetup(false);
+          }
+        } catch (apiErr) {
+          // ถ้า API Error หรือยังไม่ Login ผ่าน API ให้โชว์หน้า Setup
           setNeedsSetup(true);
-        } else {
-          setUser(profile);
-          setNeedsSetup(false);
         }
       }
     } catch (err) {
@@ -44,8 +49,10 @@ export default function Profile() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
+    // ล้างข้อมูลเพื่อจำลองการออกจากระบบ
+    localStorage.removeItem('user_profile_info');
+    // รีโหลดหน้าเพื่อให้ App.jsx ตีกลับไปหน้า Setup (Login)
+    window.location.href = '/Profile';
   };
 
   if (loading) {
@@ -56,14 +63,19 @@ export default function Profile() {
     );
   }
 
+  // ถ้ายังไม่มีข้อมูล (เปรียบเสมือนหน้า Login/Register)
   if (needsSetup) {
     return (
       <div className="container mx-auto py-10 px-4">
-        <ProfileSetupForm onComplete={fetchProfileData} />
+        <ProfileSetupForm onComplete={() => {
+          // หลังจากกรอกฟอร์มเสร็จ ให้ดึงข้อมูลใหม่และพาไปหน้า Home
+          fetchProfileData().then(() => navigate('/Home'));
+        }} />
       </div>
     );
   }
 
+  // ถ้ามีข้อมูลแล้ว (แสดงหน้าบัตรสมาชิก)
   return (
     <div className="container mx-auto py-10 px-4 max-w-2xl">
       <Card className="border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
@@ -87,7 +99,6 @@ export default function Profile() {
           </div>
 
           <div className="grid gap-3 mt-8">
-            {/* เลขบัตรประชาชน */}
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
                 <IdCard className="text-indigo-600 w-5 h-5" />
@@ -98,7 +109,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* รหัสประจำตัว */}
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
                 <GraduationCap className="text-indigo-600 w-5 h-5" />
@@ -109,7 +119,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* อีเมล */}
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
                 <Mail className="text-indigo-600 w-5 h-5" />
