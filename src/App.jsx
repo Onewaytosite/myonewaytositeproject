@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 
@@ -9,17 +9,14 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* หน้าแรก: ถ้ายังไม่ล็อกอิน ให้ไปที่ Profile เสมอ */}
+        {/* ถ้ามีข้อมูล User ให้ไป Home ถ้าไม่มีไป Profile (หน้าล็อกอิน) */}
         <Route 
           path="/" 
-          element={userSession ? <Navigate to="/Home" replace /> : <Navigate to="/Profile" replace />} 
+          element={userSession ? <Navigate to="/Home" /> : <Navigate to="/Profile" />} 
         />
-        
         <Route path="/Home" element={<Home />} />
         <Route path="/Profile" element={<Profile />} />
-        
-        {/* ถ้าหลงทางให้กลับไปหน้าแรก */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
