@@ -4,11 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Save } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+import { Loader2, LogIn } from "lucide-react";
 
-export default function ProfileSetupForm({ onComplete }) {
-  const navigate = useNavigate();
+export default function ProfileSetupForm() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -25,25 +23,21 @@ export default function ProfileSetupForm({ onComplete }) {
       
       const userData = {
         ...formData,
-        avatar_url: "" // สามารถเพิ่ม logic อัปโหลดรูปทีหลังได้
+        avatar_url: "" 
       };
       
-      // บันทึกลงเครื่อง (ทำหน้าที่ Login)
+      // เก็บข้อมูลลงเครื่อง
       localStorage.setItem('user_profile_info', JSON.stringify(userData));
       
-      // หน่วงเวลาให้ดูเหมือนบันทึกลง Server จริงๆ
+      // จำลองการโหลด
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      if (onComplete) {
-        await onComplete();
-      }
-
-      // ดีดไปหน้า Home ทันที
-      navigate('/Home'); 
+      // ✅ ใช้ window.location.href เพื่อรีโหลดแอปให้ไปหน้า Home ทันที
+      window.location.href = '/Home';
 
     } catch (error) {
-      console.error("Update failed:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      console.error("Login failed:", error);
+      alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
     } finally {
       setLoading(false);
     }
@@ -52,8 +46,8 @@ export default function ProfileSetupForm({ onComplete }) {
   return (
     <Card className="max-w-md mx-auto border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
       <CardHeader className="bg-indigo-600 text-white p-8">
-        <CardTitle className="text-2xl font-bold text-center">ตั้งค่าโปรไฟล์</CardTitle>
-        <p className="text-indigo-100 text-center text-sm mt-2">กรุณากรอกข้อมูลเพื่อเริ่มต้นใช้งาน</p>
+        <CardTitle className="text-2xl font-bold text-center">เข้าสู่ระบบ</CardTitle>
+        <p className="text-indigo-100 text-center text-sm mt-2">กรุณากรอกข้อมูลเพื่อเข้าใช้งาน SKTC Garden</p>
       </CardHeader>
       
       <CardContent className="p-8">
@@ -62,7 +56,7 @@ export default function ProfileSetupForm({ onComplete }) {
             <Label htmlFor="full_name">ชื่อ-นามสกุล</Label>
             <Input 
               id="full_name"
-              placeholder="ชื่อ - นามสกุล"
+              placeholder="กรอกชื่อ - นามสกุล"
               required
               value={formData.full_name}
               onChange={(e) => setFormData({...formData, full_name: e.target.value})}
@@ -126,8 +120,8 @@ export default function ProfileSetupForm({ onComplete }) {
             disabled={loading}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-6 rounded-2xl transition-all mt-4"
           >
-            {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
-            บันทึกข้อมูล
+            {loading ? <Loader2 className="animate-spin mr-2" /> : <LogIn className="mr-2" />}
+            เข้าสู่ระบบ
           </Button>
         </form>
       </CardContent>

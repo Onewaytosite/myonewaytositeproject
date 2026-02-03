@@ -1,141 +1,69 @@
-import React, { useEffect, useState } from 'react';
-import { base44 } from "@/api/base44Client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, User, IdCard, GraduationCap, Mail, LogOut } from "lucide-react";
+import React, { useState, useEffect } from 'react';
 import ProfileSetupForm from "@/components/profile/ProfileSetupForm";
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from "@/components/ui/card";
+import { LogOut, User, IdCard, Mail } from "lucide-react";
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [needsSetup, setNeedsSetup] = useState(false);
-  const navigate = useNavigate();
-
-  const fetchProfileData = async () => {
-    try {
-      setLoading(true);
-      const savedUserData = localStorage.getItem('user_profile_info');
-      
-      if (savedUserData) {
-        setUser(JSON.parse(savedUserData));
-        setNeedsSetup(false);
-      } else {
-        // กรณีไม่มีข้อมูลในเครื่อง ลองเช็คจาก API
-        try {
-          const profile = await base44.auth.me();
-          if (!profile.id_card_number || !profile.position) {
-            setNeedsSetup(true);
-          } else {
-            setUser(profile);
-            setNeedsSetup(false);
-          }
-        } catch (apiErr) {
-          // ถ้า API Error หรือยังไม่ Login ผ่าน API ให้โชว์หน้า Setup
-          setNeedsSetup(true);
-        }
-      }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setNeedsSetup(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    fetchProfileData();
+    const saved = localStorage.getItem('user_profile_info');
+    if (saved) {
+      setUserData(JSON.parse(saved));
+    }
   }, []);
 
   const handleLogout = () => {
-    // ล้างข้อมูลเพื่อจำลองการออกจากระบบ
     localStorage.removeItem('user_profile_info');
-    // รีโหลดหน้าเพื่อให้ App.jsx ตีกลับไปหน้า Setup (Login)
     window.location.href = '/Profile';
   };
 
-  if (loading) {
+  // 1. ถ้าไม่มีข้อมูล ให้โชว์ฟอร์มเข้าสู่ระบบ
+  if (!userData) {
     return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <ProfileSetupForm />
       </div>
     );
   }
 
-  // ถ้ายังไม่มีข้อมูล (เปรียบเสมือนหน้า Login/Register)
-  if (needsSetup) {
-    return (
-      <div className="container mx-auto py-10 px-4">
-        <ProfileSetupForm onComplete={() => {
-          // หลังจากกรอกฟอร์มเสร็จ ให้ดึงข้อมูลใหม่และพาไปหน้า Home
-          fetchProfileData().then(() => navigate('/Home'));
-        }} />
-      </div>
-    );
-  }
-
-  // ถ้ามีข้อมูลแล้ว (แสดงหน้าบัตรสมาชิก)
+  // 2. ถ้ามีข้อมูลแล้ว ให้โชว์หน้าโปรไฟล์ปกติ
   return (
-    <div className="container mx-auto py-10 px-4 max-w-2xl">
-      <Card className="border-0 shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
-        <div className="h-32 bg-gradient-to-r from-indigo-900 via-indigo-700 to-indigo-600" />
-        
-        <CardContent className="relative pt-0 pb-10">
-          <div className="flex flex-col items-center -mt-16 mb-6">
-            <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
-              <AvatarImage src={user?.avatar_url} />
-              <AvatarFallback className="bg-indigo-100 text-indigo-600">
-                <User size={48} />
-              </AvatarFallback>
-            </Avatar>
-            <h2 className="mt-4 text-2xl font-bold text-slate-800">{user?.full_name || 'ชื่อ - นามสกุล'}</h2>
-            <p className="text-indigo-600 text-xs font-bold mt-1 uppercase tracking-wider">
-               วิทยาลัยเทคนิคสระแก้ว
+    <div className="min-h-screen bg-slate-50 p-6">
+      <Card className="max-w-md mx-auto border-0 shadow-lg rounded-3xl bg-white overflow-hidden">
+        <div className="bg-indigo-600 h-24"></div>
+        <CardContent className="relative px-6 pb-8">
+          <div className="flex justify-center -mt-12 mb-4">
+             <div className="bg-white p-1 rounded-full shadow-md">
+                <div className="bg-indigo-100 w-24 h-24 rounded-full flex items-center justify-center text-indigo-600">
+                  <User size={48} />
+                </div>
+             </div>
+          </div>
+          
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-slate-800">{userData.full_name}</h2>
+            <p className="text-indigo-600 font-medium text-sm">
+              {userData.position === 'student' ? 'นักศึกษา' : 'อาจารย์ / บุคลากร'}
             </p>
-            <Badge variant="secondary" className="mt-3 bg-indigo-50 text-indigo-700 border border-indigo-100 px-4 py-1 rounded-full">
-              {user?.position === 'student' ? 'นักศึกษา' : 'อาจารย์ / บุคลากร'}
-            </Badge>
           </div>
 
-          <div className="grid gap-3 mt-8">
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                <IdCard className="text-indigo-600 w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">เลขบัตรประชาชน</p>
-                <p className="text-slate-700 font-semibold">{user?.id_card_number || '-'}</p>
-              </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
+              <Mail className="text-slate-400" size={20} />
+              <span className="text-slate-600 text-sm">{userData.email}</span>
             </div>
-
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                <GraduationCap className="text-indigo-600 w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">รหัสประจำตัว / เบอร์โทร</p>
-                <p className="text-slate-700 font-semibold">{user?.student_teacher_id || '-'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                <Mail className="text-indigo-600 w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">อีเมลติดต่อ</p>
-                <p className="text-slate-700 font-semibold text-sm">{user?.email || '-'}</p>
-              </div>
+            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
+              <IdCard className="text-slate-400" size={20} />
+              <span className="text-slate-600 text-sm">{userData.student_teacher_id}</span>
             </div>
           </div>
 
           <button 
             onClick={handleLogout}
-            className="w-full mt-8 flex items-center justify-center gap-2 text-white bg-gradient-to-r from-red-500 to-red-600 font-bold py-4 rounded-2xl shadow-lg shadow-red-100 hover:scale-[1.01] active:scale-95 transition-all"
+            className="w-full mt-8 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-4 rounded-2xl transition-colors"
           >
-            <LogOut size={20} />
-            ออกจากระบบ
+            <LogOut size={20} /> ออกจากระบบ
           </button>
         </CardContent>
       </Card>
