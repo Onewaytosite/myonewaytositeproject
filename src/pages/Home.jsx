@@ -1,71 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, RefreshCcw, Leaf } from "lucide-react";
-import { db, seedDatabase } from '../lib/firebase'; // เช็คว่า import seedDatabase มาแล้ว
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { Search, User, RefreshCcw } from "lucide-react";
+import { db, seedDatabase } from '../lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function Home() {
   const [plants, setPlants] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ใช้ onSnapshot เพื่อให้ข้อมูลอัปเดตแบบ Real-time ทันทีที่กด Sync
-    const q = query(collection(db, "plants"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const plantData = [];
-      querySnapshot.forEach((doc) => {
-        plantData.push({ ...doc.data(), id: doc.id });
-      });
-      setPlants(plantData);
+    const unsubscribe = onSnapshot(collection(db, "plants"), (snap) => {
+      setPlants(snap.docs.map(doc => ({ ...doc.data(), id: doc.id })));
     });
-
     return () => unsubscribe();
   }, []);
 
-  const handleSync = async () => {
-    await seedDatabase();
-    // ข้อมูลจะอัปเดตเองอัตโนมัติจาก onSnapshot ด้านบน
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
-      <div className="bg-indigo-600 p-8 rounded-b-[3rem] shadow-lg">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-white text-2xl font-black italic tracking-tighter">GREEN IT</h1>
-          <button 
-            onClick={handleSync}
-            className="flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-2xl text-xs backdrop-blur-md border border-white/10 active:scale-95 transition-all"
-          >
-            <RefreshCcw size={14} /> Sync Cloud
-          </button>
+    <div className="min-h-screen bg-emerald-50 pb-20">
+      <header className="flex justify-between items-center p-6">
+        <h1 className="text-emerald-800 text-lg font-black tracking-tighter">GREENCODE IT</h1>
+        <div className="flex gap-2">
+          <button onClick={seedDatabase} className="p-2 text-emerald-600"><RefreshCcw size={20}/></button>
+          <button onClick={() => navigate('/profile')} className="p-2 bg-white rounded-full shadow-sm text-emerald-700"><User size={24}/></button>
         </div>
-        <div className="relative">
-          <Search className="absolute left-4 top-3.5 text-indigo-300" size={18} />
-          <input 
-            type="text" 
-            placeholder="ค้นหาต้นไม้ในสวน IT..." 
-            className="w-full bg-white/10 border border-white/20 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-indigo-200 focus:outline-none focus:ring-2 focus:ring-white/30"
-          />
-        </div>
-      </div>
+      </header>
 
-      <div className="p-6">
+      <div className="px-6">
+        <div className="relative mb-6">
+          <Search className="absolute left-4 top-3.5 text-emerald-300" size={18} />
+          <input type="text" placeholder="ค้นหาต้นไม้..." className="w-full bg-white rounded-2xl py-3.5 pl-12 shadow-sm border-none outline-none" />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           {plants.map((plant) => (
-            <div 
-              key={plant.id} 
-              onClick={() => navigate(`/plant/${plant.id}`)}
-              className="bg-white rounded-[2rem] p-3 shadow-sm border border-slate-100 active:scale-95 transition-all"
-            >
-              <div className="h-32 rounded-[1.5rem] overflow-hidden mb-3">
-                <img 
-                  src={plant.images ? plant.images[0] : '/placeholder.jpg'} 
-                  className="w-full h-full object-cover" 
-                  alt={plant.common_name} 
-                />
+            <div key={plant.id} onClick={() => navigate(`/plant/${plant.id}`)} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-emerald-100 active:scale-95 transition-all">
+              <img src={plant.images?.[0]} className="w-full h-32 object-cover" alt={plant.common_name} />
+              <div className="p-3">
+                <h3 className="font-bold text-slate-800 text-sm truncate">{plant.common_name}</h3>
+                <p className="text-[10px] italic text-emerald-600 truncate">{plant.scientific_name}</p>
               </div>
-              <h3 className="font-bold text-slate-800 text-sm px-1 truncate">{plant.common_name}</h3>
-              <p className="text-[10px] text-slate-400 px-1 mb-2">{plant.location_name}</p>
             </div>
           ))}
         </div>

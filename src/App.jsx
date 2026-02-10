@@ -1,52 +1,73 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { App as CapApp } from '@capacitor/app';
+import { auth } from './lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+
+// นำเข้าหน้า Page ทั้งหมด
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import PlantDetail from './pages/PlantDetail';
+import Register from './pages/Register';
+import Login from './pages/Login';
 
 function BackButtonHandler() {
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // สร้างฟังก์ชัน Listener
-    const backListener = CapApp.addListener('backButton', (data) => {
-      // ตรวจสอบ Path ปัจจุบัน
-      const currentPath = location.pathname;
-
-      if (currentPath === '/Home' || currentPath === '/Profile' || currentPath === '/') {
-        // ถ้าอยู่หน้าหลัก ให้ปิดแอปทันที
+    const backListener = CapApp.addListener('backButton', () => {
+      const path = location.pathname;
+      if (path === '/Home' || path === '/' || path === '/Login') {
         CapApp.exitApp();
       } else {
-        // ถ้าอยู่หน้าย่อย (เช่น PlantDetail) ให้ย้อนกลับไปหน้าก่อนหน้า 1 step
         navigate(-1);
       }
     });
 
-    // คืนค่าฟังก์ชันเพื่อลบ Listener เมื่อไม่ได้ใช้ (Clean up)
     return () => {
       backListener.then(res => res.remove());
     };
-  }, [location, navigate]); // ใส่ dependencies ให้ครบเพื่อให้ทำงานตามหน้าปัจจุบัน
+  }, [location, navigate]);
 
   return null;
 }
 
 function App() {
-  // ตรวจสอบว่าเคยกรอกโปรไฟล์หรือยัง
-  const isAuthenticated = !!localStorage.getItem('user_profile_info');
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setInitializing(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  if (initializing) return null;
 
   return (
     <Router>
-      {/* ต้องวาง BackButtonHandler ไว้ใต้ Router เพื่อให้ใช้ hooks ได้ */}
       <BackButtonHandler />
       
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/Home" /> : <Navigate to="/Profile" />} />
-        <Route path="/Home" element={<Home />} />
-        <Route path="/Profile" element={<Profile />} />
-        <Route path="/PlantDetail/:id" element={<PlantDetail />} />
+        {/* หน้าแรก: ถ้า Login แล้วไป Home ถ้ายังไม่ Login ไปหน้า Login */}
+        <Route path="/" element={user ? <Navigate to="/Home" /> : <Login />} />
+        
+        {/* หน้าสมัครสมาชิก */}
+        <Route path="/register" element={<Register />} />
+
+        {/* หน้าหลักของแอป */}
+        <Route path="/Home" element={user ? <Home /> : <Navigate to="/" />} />
+        
+        {/* หน้าโปรไฟล์ */}
+        <Route path="/Profile" element={user ? <Profile /> : <Navigate to="/" />} />
+        
+        {/* หน้ารายละเอียดต้นไม้ */}
+        <Route path="/plant/:id" element={user ? <PlantDetail /> : <Navigate to="/" />} />
+
+        {/* ดักจับ Path อื่นๆ */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
